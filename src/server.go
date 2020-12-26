@@ -25,6 +25,8 @@ func SaveHandler(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
 	message := params["message"]
 
+	//TODO: Ensure connection works without error
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
