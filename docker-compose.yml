@@ -1,0 +1,19 @@
+version: '3'
+services:
+  goexperiment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goexperiment
+    ports:
+      - "5000:5000"
+    networks:
+      - network
+  db:
+    image: mongo
+    container_name: mongodb
+    networks:
+      - network
+networks:
+  network:
+    driver: bridge

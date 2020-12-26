@@ -4,7 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/gorilla/mux"
+	"context"
+	"time"
+    "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
+
 
 func RootHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, "Hello!")
@@ -17,8 +23,17 @@ func EchoHandler(w http.ResponseWriter, r *http.Request){
 
 func SaveHandler(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
-	message := params["message"];
-	fmt.Fprint(w, "Echo: ", message)
+	message := params["message"]
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	client, _ := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	collection := client.Database("data").Collection("messages")
+	res, _ := collection.InsertOne(ctx, bson.M{"message": message})
+	id := res.InsertedID
+
+	fmt.Fprint(w, "Saved: ", message, " at ", id)
 }
 
 func main() {
