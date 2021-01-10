@@ -7,13 +7,10 @@ services:
     container_name: goexperiment
     ports:
       - "5000:5000"
-    networks:
-      - network
+    network_mode: "host"
   db:
     image: mongo
     container_name: mongodb
-    networks:
-      - network
-networks:
-  network:
-    driver: bridge
+    ports:
+      - "27017:27017"
+    network_mode: "host"
