@@ -11,19 +11,25 @@ import (
     "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func getClient(){
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	err = client.Connect(ctx)
-	defer cancel();
+var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second);
 
-	disconnect = func() {
-		if err = client.Disconnect()
+func getClient() (*mongo.Client, func()) {
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	err = client.Connect(ctx)
+
+	if (err != nil) {
+		panic(err);
+	}
+
+	disconnect := func() {
+		err = client.Disconnect(ctx);
+		if (err != nil) {
+			panic(err)
+		}
 	}
 
 	return client, disconnect;
 }
-
 
 func RootHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, "Hello!")
@@ -40,13 +46,19 @@ func SaveHandler(w http.ResponseWriter, r *http.Request){
 
 	client, disconnect := getClient();
 	defer disconnect();
-	messages := client.Database("testing").Collection("message")
-	res, _ := collection.InsertOne(ctx, bson.M{"value": message})
+	messageCollection := client.Database("testing").Collection("message")
+	res, err := messageCollection.InsertOne(ctx, bson.M{"value": message})
+
+	if (err != nil) {
+		panic(err);
+	}
 
 	fmt.Fprint(w, "Saved: ", message, " at ", res.InsertedID)
 }
 
 func main() {
+	defer cancel();
+	
 	router := mux.NewRouter()
 	router.HandleFunc("/", RootHandler)
 	router.HandleFunc("/echo/{message}", EchoHandler)
