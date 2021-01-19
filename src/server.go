@@ -12,6 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Message struct {
+	Text string
+}
+
 var ctx, cancel = context.WithCancel(context.Background())
 
 func getClient() (*mongo.Client, func()) {
@@ -48,7 +52,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	client, disconnect := getClient()
 	defer disconnect()
 	messageCollection := client.Database("testing").Collection("message")
-	res, err := messageCollection.InsertOne(ctx, bson.M{"value": message})
+	res, err := messageCollection.InsertOne(ctx, bson.M{"Text": message})
 
 	if err != nil {
 		panic(err)
@@ -58,7 +62,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoadHandler(w http.ResponseWriter, r *http.Request) {
-	var message interface{}
+	var message Message
 
 	params := mux.Vars(r)
 	idHex := params["id"]
@@ -69,12 +73,13 @@ func LoadHandler(w http.ResponseWriter, r *http.Request) {
 	defer disconnect()
 	messageCollection := client.Database("testing").Collection("message")
 	err = messageCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&message)
+	println(message.Text)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Fprint(w, "Message found: ", message)
+	fmt.Fprint(w, "Message found: ", message.Text)
 }
 
 func main() {
