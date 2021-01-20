@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"hello"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -90,6 +91,9 @@ func main() {
 	router.HandleFunc("/echo/{message}", EchoHandler)
 	router.HandleFunc("/save/{message}", SaveHandler)
 	router.HandleFunc("/load/{id}", LoadHandler)
+	router.HandleFunc("/sayHello", func(_ http.ResponseWriter, _ *http.Request) {
+		hello.SayHello()
+	})
 
 	http.ListenAndServe(":5000", router)
 }
