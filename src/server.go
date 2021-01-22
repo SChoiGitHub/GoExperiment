@@ -6,13 +6,7 @@ import (
 	"repository"
 
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-type Message struct {
-	Text string
-}
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello!")
@@ -27,33 +21,23 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	message := params["message"]
 
-	res, err := repository.MessageCollection.InsertOne(repository.Context, bson.M{"Text": message})
-
-	if err != nil {
-		panic(err)
-	}
+	res := repository.SaveMessage(message)
 
 	fmt.Fprint(w, "Saved: ", message, " at ", res.InsertedID)
 }
 
 func LoadHandler(w http.ResponseWriter, r *http.Request) {
-	var message Message
-
 	params := mux.Vars(r)
-	idHex := params["id"]
+	id := params["id"]
 
-	objId, err := primitive.ObjectIDFromHex(idHex)
-
-	err = repository.MessageCollection.FindOne(repository.Context, bson.M{"_id": objId}).Decode(&message)
-
-	if err != nil {
-		panic(err)
-	}
+	message := repository.LoadMessage(id)
 
 	fmt.Fprint(w, "Message found: ", message.Text)
 }
 
 func main() {
+	defer repository.Disconnect()
+
 	router := mux.NewRouter()
 	router.HandleFunc("/", RootHandler)
 	router.HandleFunc("/echo/{message}", EchoHandler)
