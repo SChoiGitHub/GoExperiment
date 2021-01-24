@@ -27,6 +27,12 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoadHandler(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Fprint(w, "Message not found at ID.")
+		}
+	}()
+
 	params := mux.Vars(r)
 	id := params["id"]
 
