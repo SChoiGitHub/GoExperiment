@@ -10,7 +10,8 @@ import (
 )
 
 type message struct {
-	Text string
+	location string
+	Text     string
 }
 
 var ctx = context.Background()
@@ -36,14 +37,15 @@ func Disconnect() {
 	}
 }
 
-func SaveMessage(message string) *mongo.InsertOneResult {
-	res, err := messageCollection.InsertOne(ctx, bson.M{"Text": message})
+func SaveMessage(location string, message string) {
+	_, err := messageCollection.InsertOne(ctx, bson.M{
+		"Location": location,
+		"Text":     message,
+	})
 
 	if err != nil {
 		panic(err)
 	}
-
-	return res
 }
 
 func LoadMessage(idAsString string) message {
