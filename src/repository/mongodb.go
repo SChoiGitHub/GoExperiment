@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -48,14 +47,22 @@ func SaveMessage(location string, message string) {
 	}
 }
 
-func LoadMessage(idAsString string) message {
+func LoadMessage(location string) message {
 	var message message
-	objId, err := primitive.ObjectIDFromHex(idAsString)
-	err = messageCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&message)
+	err := messageCollection.FindOne(ctx, bson.M{"Location": location}).Decode(&message)
 
 	if err != nil {
 		panic(err)
 	}
 
 	return message
+}
+
+func DeleteMessage(location string) message {
+	var message message
+	err := messageCollection.DeleteOne(ctx, bson.M{"Location": location})
+
+	if err != nil {
+		panic(err)
+	}
 }

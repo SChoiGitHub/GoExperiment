@@ -19,18 +19,22 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoadHandler(w http.ResponseWriter, r *http.Request) {
+	defer recoverIfMessageNotFound(w)
+
+	params := mux.Vars(r)
+	location := params["location"]
+
+	message := repository.LoadMessage(location)
+
+	fmt.Fprint(w, "Message found: ", message.Text)
+}
+
+func recoverIfMessageNotFound(w http.ResponseWriter) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Fprint(w, "Message not found at Location.")
 		}
 	}()
-
-	params := mux.Vars(r)
-	id := params["id"]
-
-	message := repository.LoadMessage(id)
-
-	fmt.Fprint(w, "Message found: ", message.Text)
 }
 
 func main() {
@@ -38,7 +42,8 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/save/{location}/{message}", SaveHandler)
-	router.HandleFunc("/load/{id}", LoadHandler)
+	router.HandleFunc("/load/{location}", LoadHandler)
+	router.HandleFunc("/delete/{location}", LoadHandler)
 
 	http.ListenAndServe(":5000", router)
 }
