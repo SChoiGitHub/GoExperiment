@@ -29,12 +29,21 @@ func LoadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Message found: ", message.Text)
 }
 
+func DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	defer recoverIfMessageNotFound(w)
+
+	params := mux.Vars(r)
+	location := params["location"]
+
+	repository.DeleteMessage(location)
+
+	fmt.Fprint(w, "Deleted message at: ", location)
+}
+
 func recoverIfMessageNotFound(w http.ResponseWriter) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Fprint(w, "Message not found at Location.")
-		}
-	}()
+	if r := recover(); r != nil {
+		fmt.Fprint(w, "Message not found at location.")
+	}
 }
 
 func main() {
@@ -43,7 +52,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/save/{location}/{message}", SaveHandler)
 	router.HandleFunc("/load/{location}", LoadHandler)
-	router.HandleFunc("/delete/{location}", LoadHandler)
+	router.HandleFunc("/delete/{location}", DeleteHandler)
 
 	http.ListenAndServe(":5000", router)
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -58,11 +59,14 @@ func LoadMessage(location string) message {
 	return message
 }
 
-func DeleteMessage(location string) message {
-	var message message
-	err := messageCollection.DeleteOne(ctx, bson.M{"Location": location})
+func DeleteMessage(location string) {
+	item, err := messageCollection.DeleteOne(ctx, bson.M{"Location": location})
 
 	if err != nil {
 		panic(err)
+	}
+
+	if item.DeletedCount == 0 {
+		panic(errors.New("Delete failed"))
 	}
 }
